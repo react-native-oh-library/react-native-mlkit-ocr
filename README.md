@@ -1,69 +1,13 @@
-# react-native-mlkit-ocr
-<p align="center">
-    Google on-device MLKit text recognition for React Native
-</p>
+# @react-native-oh-tpl/react-native-mlkit-ocr
 
-<p align="center">
-  <img src="https://user-images.githubusercontent.com/1637928/115913726-d2a97c00-a425-11eb-9c6a-6d19b974ee81.gif">
-</p>
+## 文档地址 / Documentation URL 
 
+[中文 / Chinese](https://gitee.com/react-native-oh-library/usage-docs/blob/master/zh-cn/react-native-mlkit-ocr.md)
 
-## Installation
+## Codegen
 
-```sh
-npm install react-native-mlkit-ocr
-```
-## Post-install Steps
+该库已接入 codegen，具体请查阅文档。
 
-### iOS
-Run
+## 请悉知 / Acknowledgements
 
-```js
-cd ios && pod install
-```
-
-## Usage
-
-```js
-import MlkitOcr from 'react-native-mlkit-ocr';
-
-// ...
-
-const resultFromUri = await MlkitOcr.detectFromUri(uri);
-const resultFromFile = await MlkitOcr.detectFromFile(path);
-```
-
-
-## Example
-
-To get started with the project, run `yarn bootstrap` in the root directory to install the required dependencies for each package:
-
-```sh
-yarn bootstrap
-```
-
-To start the packager:
-
-```sh
-yarn example start
-```
-
-To run the example app on Android:
-
-```sh
-yarn example android
-```
-
-To run the example app on iOS:
-
-```sh
-yarn example ios
-```
-
-## Contributing
-
-See the [contributing guide](CONTRIBUTING.md) to learn how to contribute to the repository and the development workflow.
-
-## License
-
-MIT
+本项目基于 [The MIT License (MIT)](https://github.com/react-native-oh-library/react-native-mlkit-ocr/blob/sig/LICENSE) ，请自由地享受和参与开源。

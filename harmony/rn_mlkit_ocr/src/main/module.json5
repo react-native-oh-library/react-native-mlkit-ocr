@@ -1,0 +1,7 @@
+{
+  module: {
+    name: 'rn_mlkit_ocr',
+    type: 'har',
+    deviceTypes: ['default'],
+  }
+}

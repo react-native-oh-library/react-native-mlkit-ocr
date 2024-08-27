@@ -1,0 +1,12 @@
+{
+  "apiType": "stageMode",
+  "targets": [
+    {
+      "name": "default",
+      "runtimeOS": "HarmonyOS",
+      "output": {
+        "artifactName": "rn_mlkit_ocr"
+      }
+    }
+  ],
+}

@@ -1,0 +1,13 @@
+{
+  "license": "MIT",
+  "types": "",
+  "devDependencies": {
+  },
+  "name": "@react-native-oh-tpl/react-native-mlkit-ocr",
+  "description": "",
+  "main": "index.ets",
+  "version": "0.3.0-0.0.1",
+  "dependencies": {
+    "@rnoh/react-native-openharmony": "file:../libs/react_native_openharmony-5.0.0.401.har"
+  }
+}
