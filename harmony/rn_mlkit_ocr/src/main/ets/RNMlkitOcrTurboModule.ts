@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 
+
 import { TurboModule, TurboModuleContext } from '@rnoh/react-native-openharmony/ts';
 import { textRecognition } from '@kit.CoreVisionKit';
 import { BusinessError } from '@kit.BasicServicesKit';
@@ -30,6 +31,7 @@ import { image } from '@kit.ImageKit';
 import { http } from '@kit.NetworkKit';
 import fs from '@ohos.file.fs';
 import fileIo from '@ohos.file.fs';
+import { resourceManager } from '@kit.LocalizationKit';
 import Logger from './Logger';
 
 const TAG: string = 'RNOH in ocr'
@@ -72,8 +74,8 @@ type MlkitOcrResult = MKLBlock[]
 
 export class RNMlkitOcrTurboModule extends TurboModule {
   public ctx: TurboModuleContext
-  private chooseImage: image.PixelMap | null = null;
-  private imageSource: image.ImageSource | null = null;
+  private chooseImage: image.PixelMap | undefined = undefined;
+  private imageSource: image.ImageSource | undefined = undefined;
   private imageUriPath: string = '';
 
   constructor(ctx: TurboModuleContext) {
@@ -83,7 +85,7 @@ export class RNMlkitOcrTurboModule extends TurboModule {
 
   public detectFromUri(imagePath: string): Promise<MlkitOcrResult> {
     return new Promise(async (resolve) => {
-      if (!imagePath) {
+      if (imagePath === undefined) {
         Logger.error(TAG, 'detectFromUri', 'Failed to get uri.');
         return;
       }
@@ -102,7 +104,7 @@ export class RNMlkitOcrTurboModule extends TurboModule {
 
   public detectFromFile(imagePath: string): Promise<MlkitOcrResult> {
     return new Promise(async (resolve) => {
-      if (!imagePath) {
+      if (imagePath === undefined) {
         Logger.error(TAG, 'detectFromFile', 'Failed to get path.');
         return;
       }
@@ -123,7 +125,7 @@ export class RNMlkitOcrTurboModule extends TurboModule {
       for (const textLines of textBlock.lines) {
         const lineElements: MLKTextElement[] = [];
         for (const textLine of textLines.words) {
-          const element: MLKTextElement = {
+          const e: MLKTextElement = {
             text: '',
             cornerPoints: null,
             bounding: {
@@ -133,17 +135,17 @@ export class RNMlkitOcrTurboModule extends TurboModule {
               width: 0
             }
           };
-          element.text = textLine.value;
-          element.cornerPoints = this.getCornerLinePoints(textLine.cornerPoints);
-          element.bounding = {
+          e.text = textLine.value;
+          e.cornerPoints = this.getCornerLinePoints(textLine.cornerPoints);
+          e.bounding = {
             left: 0,
             top: 0,
             height: 0,
             width: 0
           };
-          lineElements.push(element);
+          lineElements.push(e);
         }
-        const line: MLKTextLine = {
+        const l: MLKTextLine = {
           text: '',
           elements: [],
           cornerPoints: null,
@@ -154,18 +156,18 @@ export class RNMlkitOcrTurboModule extends TurboModule {
             width: 0
           }
         };
-        line.text = textLines.value;
-        line.cornerPoints = this.getCornerLinePoints(textLines.cornerPoints);
-        line.elements = lineElements;
-        line.bounding = {
+        l.text = textLines.value;
+        l.cornerPoints = this.getCornerLinePoints(textLines.cornerPoints);
+        l.elements = lineElements;
+        l.bounding = {
           left: 0,
           top: 0,
           height: 0,
           width: 0
         };
-        blockElements.push(line);
+        blockElements.push(l);
       }
-      const mklBlock: MKLBlock = {
+      const b: MKLBlock = {
         text: '',
         lines: [],
         cornerPoints: null,
@@ -176,20 +178,20 @@ export class RNMlkitOcrTurboModule extends TurboModule {
           width: 0
         }
       };
-      mklBlock.text = textBlock.value;
-      mklBlock.cornerPoints = [];
-      mklBlock.bounding = {
+      b.text = textBlock.value;
+      b.cornerPoints = [];
+      b.bounding = {
         left: 0,
         top: 0,
         height: 0,
         width: 0
       }
-      mklBlock.lines = blockElements;
+      b.lines = blockElements;
       output.push({
-        text: mklBlock.text,
-        lines: mklBlock.lines,
+        text: b.text,
+        lines: b.lines,
         cornerPoints: [],
-        bounding: mklBlock.bounding,
+        bounding: b.bounding,
       });
     }
     return output;
@@ -215,14 +217,13 @@ export class RNMlkitOcrTurboModule extends TurboModule {
   }
 
   private loadImageWithUrl(url: string) {
-    let TIMEOUT: number = 60000;
     return new Promise((resolve, reject) => {
       let httpRequest: http.HttpRequest = http.createHttp();
       httpRequest.request(url,
         {
           method: http.RequestMethod.GET,
-          connectTimeout: TIMEOUT,
-          readTimeout: TIMEOUT
+          connectTimeout: 60000,
+          readTimeout: 60000
         },
         async (error: BusinessError, data: http.HttpResponse) => {
           if (error) {
@@ -254,17 +255,59 @@ export class RNMlkitOcrTurboModule extends TurboModule {
           }
         })
     })
-
   }
 
   private async loadImage(imagePath: string): Promise<void> {
     try {
-      let fileSource: fs.File = await fs.openSync(imagePath, fs.OpenMode.READ_WRITE);
-      this.imageSource = image.createImageSource(fileSource.fd);
+      let fd: number;
+      let filesDir: string = this.ctx.uiAbilityContext.filesDir;
+      let cacheDir: string = this.ctx.uiAbilityContext.cacheDir;
+      if (imagePath.indexOf(filesDir) > 0 || imagePath.indexOf(cacheDir) > 0) {
+        let fileSource: fs.File = await fs.openSync(imagePath, fs.OpenMode.READ_WRITE);
+        fd = fileSource.fd;
+        this.imageSource = image.createImageSource(fd);
+      } else if (imagePath.indexOf('assets/') >= 0 || imagePath.indexOf('assets://') === 0) {
+        let imagePathNew: string = imagePath.replace('assets://', '');
+        let rawFileDescriptor: resourceManager.RawFileDescriptor =
+          this.ctx.uiAbilityContext.resourceManager.getRawFdSync(imagePathNew);
+        let desFilePath: string = `${cacheDir}/${imagePathNew.split('/')[1]}`;
+        this.saveFileToCache(rawFileDescriptor, desFilePath);
+        fd = rawFileDescriptor.fd;
+        this.imageSource = image.createImageSource(desFilePath);
+      } else {
+        let fileSource: fs.File = await fs.openSync(imagePath, fs.OpenMode.READ_WRITE);
+        fd = fileSource.fd;
+        this.imageSource = image.createImageSource(fd);
+      }
       this.chooseImage = await this.imageSource.createPixelMap();
     } catch (error) {
-      Logger.error(TAG, `loadImage: ${error}`);
+      Logger.error(TAG, `loadImage: ${(error as BusinessError).code}`);
     }
+  }
+
+  // 将文件保存至沙箱目录
+  private saveFileToCache(file: resourceManager.RawFileDescriptor, desFilePath: string) {
+    let cacheFile = fs.openSync(
+      desFilePath,
+      fs.OpenMode.WRITE_ONLY | fs.OpenMode.CREATE | fs.OpenMode.TRUNC)
+    let buffer = new ArrayBuffer(4096);
+    let currentOffset = file.offset;
+    let lengthNeedToReed = file.length;
+    let readOption = {
+      offset: currentOffset,
+      length: lengthNeedToReed > buffer.byteLength ? 4096 : lengthNeedToReed
+    }
+    while (true) {
+      let readLength = fs.readSync(file.fd, buffer, readOption);
+      fs.writeSync(cacheFile.fd, buffer, { length: readLength })
+      if (readLength < 4096) {
+        break;
+      }
+      lengthNeedToReed -= readLength;
+      readOption.offset += readLength;
+      readOption.length = lengthNeedToReed > buffer.byteLength ? 4096 : lengthNeedToReed;
+    }
+    fs.close(cacheFile);
   }
 
   private async textRecognition(): Promise<MlkitOcrResult> {
