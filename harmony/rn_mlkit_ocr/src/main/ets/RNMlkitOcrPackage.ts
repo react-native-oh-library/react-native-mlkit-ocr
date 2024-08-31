@@ -22,8 +22,10 @@
  * SOFTWARE.
  */
 
+
 import type { TurboModule, TurboModuleContext } from '@rnoh/react-native-openharmony/ts';
 import { RNPackage, TurboModulesFactory } from '@rnoh/react-native-openharmony/ts';
+
 import { RNMlkitOcrTurboModule } from './RNMlkitOcrTurboModule';
 
 class RNMlkitOcrTurboModulesFactory extends TurboModulesFactory {

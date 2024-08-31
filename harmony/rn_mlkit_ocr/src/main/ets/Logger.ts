@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 
+
 import hilog from '@ohos.hilog';
 
 class Logger {
