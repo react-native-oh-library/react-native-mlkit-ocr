@@ -1,0 +1,11 @@
+[
+    {
+        "Name": "react-native-mlkit-ocr",
+        "License": "MIT License",
+        "License File": "https://github.com/agoldis/react-native-mlkit-ocr/blob/main/LICENSE",
+        "Version Number": "0.3.0-0.0.1",
+        "Owner" : "xiafeng@huawei.com",
+        "Upstream URL": "https://github.com/agoldis/react-native-mlkit-ocr",
+        "Description": "mlkit-ocr for react-native"
+    }
+]
